@@ -45,7 +45,7 @@
                 <div class="col-lg-12 col-md-12 col-12 pl-0">
                     <h4 class="mb-0">Jugadores</h4>
                     @foreach($jugadores->all() as $jg)
-                        <h5 class="mt-2 mb-0">Jugador: {{ $jg->nombre }} - Dinero: <span id="dj{{ $jg->id }}">{{ $jg->dinero }}</span> <button onclick='selJugador({{ $jg->id }},"{{ $jg->nombre }}")'>Sel Turno</button></h5>
+                        <h5 class="mt-2 mb-0">Jugador: {{ $jg->nombre }} - Dinero: <span id="dj{{ $jg->id }}">{{ $jg->dinero }}</span> <button onclick='selJugador({{ $jg->id }},"{{ $jg->nombre }}")'>Seleccionar para turno</button></h5>
                     @endforeach
                 </div>                
             </div>            
@@ -100,10 +100,11 @@
                                 alertasCustom(4,'¡Error!',err.statusText+" : "+err.responseJSON['message']);
                             },
                             success: function(res) {
-                                alertasCustom(1,'¡Exito!',res);
-                                result = parseFloat(moneyJugador - parseFloat(vlrApuesta).toFixed(2)).toFixed(2);
-                                document.getElementById("dj"+codJugador).innerHTML = result;
-                                return false;
+                                location.reload();
+                                // alertasCustom(1,'¡Exito!',res);
+                                // result = parseFloat(moneyJugador - parseFloat(vlrApuesta).toFixed(2)).toFixed(2);
+                                // document.getElementById("dj"+codJugador).innerHTML = result;
+                                // return false;
                             }
                         });                    
                     }
@@ -136,37 +137,60 @@
 
         $("input[name='porapuesta']").change(function(){
             porcenApuesta = $(this)[0].value;
-            document.getElementById("porcenjuga").innerHTML = " - Porcentaje de apuesta: "+($(this)[0].value * 100)+"%";
+            document.getElementById("porcenjuga").innerHTML = " - Porcentaje de apuesta: "+parseInt(($(this)[0].value * 100))+"%";
         });
 
         function girar(){
             var ractual = "<?php echo $ronda[0]->id; ?>";
+            var countJugadores = "<?php echo count($jugadores); ?>";
+            var countNumeros = "<?php echo count($numeros); ?>";
+            var countDetalle = "<?php echo $countDetalle; ?>";
+            var hashError = false;
 
-            for (var i = 0; i < 38; i++) {
-                numini = Math.floor((Math.random() * (37-0))+0);
-                repe = buscarRepetido(numini);
-                if(repe == false){
-                    usados.push(numini);
-                    break;
-                }
-                if( i == 37){ 
-                    usados = [];
-                    usados.push(numini);
-                } 
-            };
+            if(countJugadores < 1){
+                alertasCustom(4,'¡Error!','Se necesitan jugadores para girar la ruleta');
+                hashError = true;
+            }
 
-            $.ajax({
-                url: "/resultadoGiro",
-                type: 'POST',
-                data: {'ractual':ractual,'numcayo':numini},
-                headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
-                error: function(err) {
-                    alertasCustom(4,'¡Error!',err.statusText+" : "+err.responseJSON['message']);
-                },
-                success: function(res) {
-                    location.reload();
-                }
-            });
+            if(countNumeros < 1){
+                alertasCustom(4,'¡Error!','Se necesitan números para girar la ruleta');
+                hashError = true;
+            }
+
+            if(countDetalle < 1){
+                alertasCustom(4,'¡Error!','Se necesitan apuestas para girar la ruleta');
+                hashError = true;
+            }             
+
+            if(hashError == false){
+                for (var i = 0; i < 38; i++) {
+                    numini = Math.floor((Math.random() * (37-0))+0);
+                    repe = buscarRepetido(numini);
+                    if(repe == false){
+                        usados.push(numini);
+                        break;
+                    }
+                    if( i == 37){ 
+                        usados = [];
+                        usados.push(numini);
+                    } 
+                };
+
+                mensajes('Exito','El número ganador es: '+numini,'success');
+
+                $.ajax({
+                    url: "/resultadoGiro",
+                    type: 'POST',
+                    data: {'ractual':ractual,'numcayo':numini},
+                    headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+                    error: function(err) {
+                        alertasCustom(4,'¡Error!',err.statusText+" : "+err.responseJSON['message']);
+                    },
+                    success: function(res) {
+                        location.reload();
+                    }
+                });
+            }
         }
 
         function buscarRepetido(numero) {
