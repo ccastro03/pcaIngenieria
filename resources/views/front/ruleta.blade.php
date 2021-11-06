@@ -5,6 +5,7 @@
         <div class="col-lg-12 col-md-12 col-sm-12 pl-1">
             <h4 class="mb-0">Ronda: {{ $ronda[0]->id }}</h4>
             <h4 class="mb-0">Jugador en turno: <span id="turnojuga"></span><span id="porcenjuga"></span></h4>
+            <button class="button primary mt-2" onclick="girar()">Girar</button>
         </div>
     </div>
 
@@ -67,6 +68,7 @@
     <script>
         var codJugador;
         var porcenApuesta;
+        var usados = new Array();
 
         function apostar(idnum){
             var ractual = "<?php echo $ronda[0]->id; ?>";
@@ -135,6 +137,47 @@
         $("input[name='porapuesta']").change(function(){
             porcenApuesta = $(this)[0].value;
             document.getElementById("porcenjuga").innerHTML = " - Porcentaje de apuesta: "+($(this)[0].value * 100)+"%";
-        });        
+        });
+
+        function girar(){
+            var ractual = "<?php echo $ronda[0]->id; ?>";
+
+            for (var i = 0; i < 38; i++) {
+                numini = Math.floor((Math.random() * (37-0))+0);
+                repe = buscarRepetido(numini);
+                if(repe == false){
+                    usados.push(numini);
+                    break;
+                }
+                if( i == 37){ 
+                    usados = [];
+                    usados.push(numini);
+                } 
+            };
+
+            $.ajax({
+                url: "/resultadoGiro",
+                type: 'POST',
+                data: {'ractual':ractual,'numcayo':numini},
+                headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+                error: function(err) {
+                    alertasCustom(4,'¡Error!',err.statusText+" : "+err.responseJSON['message']);
+                },
+                success: function(res) {
+                    location.reload();
+                }
+            });
+        }
+
+        function buscarRepetido(numero) {
+            var repe = false;
+
+            for (var i = 0; i < usados.length; i++) {
+                if (numero == usados[i]) {         
+                    repe = true;
+                }
+            }
+            return repe;
+        }
     </script>    
 @endsection

@@ -11,7 +11,7 @@ Route::get('/', function () {
 
 Route::get('/ruleta', 'ruletaController@index');
 Route::post('/hacerApuesta', 'ruletaController@hacerApuesta');
-
+Route::post('/resultadoGiro', 'ruletaController@resultadoGiro');
 
 Route::resource('/jugadores', 'jugadoresController');
 
