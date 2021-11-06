@@ -10,6 +10,8 @@ Route::get('/', function () {
 });
 
 Route::get('/ruleta', 'ruletaController@index');
+Route::post('/hacerApuesta', 'ruletaController@hacerApuesta');
+
 
 Route::resource('/jugadores', 'jugadoresController');
 

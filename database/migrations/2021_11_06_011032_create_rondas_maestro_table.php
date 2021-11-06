@@ -10,6 +10,7 @@ class CreateRondasMaestroTable extends Migration
     {
         Schema::create('rondas_maestro', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->string('resultado',2)->nullable();
         });
     }
 
